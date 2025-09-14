@@ -16,21 +16,26 @@
   ansible.builtin.user:
     name: expense
 
-- name: Downloading the code 
-  ansible.builtin.get_url:
-    url: https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip
-    dest: /tmp/backend.zip
+- name: include from common role 
+  include_role:
+    name: common
+    tasks_from: main 
 
-- name: Creating Director 
-  ansible.builtin.file:
-    path: /app 
-    state: directory
+# - name: Downloading the code 
+#   ansible.builtin.get_url:
+#     url: https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip
+#     dest: /tmp/backend.zip
 
-- name: Unzipping the code 
-  ansible.builtin.unarchive:
-    src: /tmp/backend.zip
-    dest: /app 
-    remote_src: yes 
+# - name: Creating Director 
+#   ansible.builtin.file:
+#     path: /app 
+#     state: directory
+
+# - name: Unzipping the code 
+#   ansible.builtin.unarchive:
+#     src: /tmp/backend.zip
+#     dest: /app 
+#     remote_src: yes 
 
 - name: Node dependiences installing 
   community.general.npm:
