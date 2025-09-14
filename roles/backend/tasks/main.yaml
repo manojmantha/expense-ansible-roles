@@ -1,0 +1,66 @@
+- name: Disable default nodejs module 
+  ansible.builtin.command: dnf module disable nodejs -y
+
+- name: Enabling Nodejs:20 module
+  ansible.builtin.command: dnf module enable nodejs:20 -y
+
+- name: Installing nodejs 
+  ansible.builtin.package:
+    name: "{{ item }}" 
+    state: installed
+  loop:
+  - nodejs
+  - mysql
+
+- name: Adding expense user 
+  ansible.builtin.user:
+    name: expense
+
+- name: Downloading the code 
+  ansible.builtin.get_url:
+    url: https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip
+    dest: /tmp/backend.zip
+
+- name: Creating Director 
+  ansible.builtin.file:
+    path: /app 
+    state: directory
+
+- name: Unzipping the code 
+  ansible.builtin.unarchive:
+    src: /tmp/backend.zip
+    dest: /app 
+    remote_src: yes 
+
+- name: Node dependiences installing 
+  community.general.npm:
+    path: /app 
+
+- name: Copying the service file 
+  ansible.builtin.template:
+    src: backend.service.j2
+    dest: /etc/systemd/system/backend.service
+
+- name: Installing Python libraries
+  ansible.builtin.pip:
+    name: "{{ item }}"
+    executable: pip3.9
+  loop:
+  - PyMySQL
+  - cryptography
+
+- name: import mysql data
+  community.mysql.mysql_db:
+    state: import 
+    name: all
+    login_user: "{{ MYSQL_USER }}"
+    login_password: "{{ MYSQL_PASSWORD }}"
+    login_host: "{{ MYSQL_HOST }}"
+    target: /app/schema/backend.sql
+
+- name: daemon reload and restart service
+  ansible.builtin.systemd_service:
+    enabled: true
+    state: restarted
+    daemon_reload: true
+    name: backend
