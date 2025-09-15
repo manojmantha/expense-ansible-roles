@@ -18,7 +18,7 @@
 - name: connect to mysql server
   community.mysql.mysql_info:
     login_user: "{{ MYSQL_USER }}" 
-    login_password: "{{ MYSQL_PASSWORD }}"
+    login_password: "{{ lookup('amazon.aws.aws_ssm', '/expense/mysql/mysql_root_password', decrypt=True ) }}"
     login_host: "{{ MYSQL_HOST }}"
   register: mysql_info
   ignore_errors: true
